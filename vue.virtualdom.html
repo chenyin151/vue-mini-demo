@@ -1,0 +1,76 @@
+<!--vue虚拟dom
+参考资料：https://www.jianshu.com/p/af0b398602bc, https://juejin.im/post/5cf3c75de51d45572c05fff3-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vue虚拟DOM</title>
+</head>
+<body>
+    <div class="vdom">5671</div>
+    <script>
+        /**
+         * type为元素类型， children为子节点
+         */
+        class Element {
+            constructor(type, props, children) {
+                this.type = type;
+                this.props = props;
+                this.children = children;
+            }
+        }
+        function createElement(type, props, children) {
+            return new Element(type, props, children);
+        }
+        let vDom = createElement('ul', { class: 'dawd' }, [
+            createElement('li', { class: 'dawd' }, ['1']),
+            createElement('li', { class: 'dawd' }, ['2']),
+            createElement('li', { class: 'dawd' }, ['3']),
+            createElement('input')
+        ]);
+        console.log('vdom', vDom)
+        /**
+         * [createNode 创建单个元素]
+         * @param  {[type]} node [元素节点]
+         * @return {[type]}      [真实的DOM元素]
+         */
+        function createNode(node) {
+            // 根据类型创建元素
+            let el = document.createElement(node.type);
+            for (key in node.props) {
+                // 遍历属性 
+                if(key === "value"){
+                    // 只有input还有textarea需要value属性
+                    if(node.type.toUpperCase() === "INPUT" || node.type.toUpperCase() === "TEXTAREA"){
+                        el.value = node.props[key];
+                    }
+                }else {
+                    // 设置属性
+                    el.setAttribute(key, node.props[key]);
+                }
+            }
+            return el;
+        }
+        function createDom(node) {
+            let root = createNode(node);
+            if(node.children && node.children.length > 0){
+                // 遍历子元素
+                node.children.forEach( function(element) {
+                    if(element instanceof Element){
+                        // 节点
+                        root.appendChild( createDom(element) );
+                    }else {
+                        // 文本
+                        root.appendChild( document.createTextNode(element) );
+                    }
+                });
+            }
+            return root;
+        }
+        let dom = createDom(vDom);
+        console.log('dom', dom)
+        document.getElementsByTagName('body')[0].appendChild(dom)
+    </script>
+</body>
+</html>
